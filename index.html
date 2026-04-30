@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fitness Tracker</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Bebas+Neue&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --card: #1c1c1c;
+    --border: rgba(255,255,255,0.07);
+    --text: #f0f0f0;
+    --muted: #666;
+    --green: #39d97a;
+    --orange: #ff6b35;
+    --blue: #3b9eff;
+    --purple: #a78bfa;
+    --red: #ff4757;
+  }
+
+  body {
+    font-family: 'Space Grotesk', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .app { max-width: 700px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+  }
+
+  .app-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 2px;
+    line-height: 1;
+    background: linear-gradient(135deg, var(--green), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .date-label { font-size: 0.82rem; color: var(--muted); }
+
+  /* STATS */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .stat-icon { font-size: 1.2rem; margin-bottom: 0.5rem; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 1.8rem; letter-spacing: 1px; }
+  .stat-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+
+  .stat-steps .stat-value { color: var(--blue); }
+  .stat-cal .stat-value { color: var(--orange); }
+  .stat-workout .stat-value { color: var(--green); }
+  .stat-water .stat-value { color: #60c8ff; }
+
+  /* PROGRESS RINGS */
+  .rings-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .ring-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ring-card svg { width: 70px; height: 70px; }
+
+  .ring-label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .ring-pct { font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; }
+
+  /* LOG FORM */
+  .section-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .log-form {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-group { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-group label { font-size: 0.75rem; color: var(--muted); }
+
+  .form-group input, .form-group select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.6rem 0.85rem;
+    color: var(--text);
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.88rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .form-group input:focus, .form-group select:focus { border-color: var(--green); }
+  .form-group select option { background: var(--surface); }
+
+  .btn-log {
+    width: 100%;
+    background: var(--green);
+    color: #051a0e;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    letter-spacing: 0.03em;
+    transition: opacity 0.2s;
+  }
+
+  .btn-log:hover { opacity: 0.85; }
+
+  /* WEEKLY BARS */
+  .weekly-chart {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+  }
+
+  .bar-chart {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.5rem;
+    height: 100px;
+    margin-top: 1rem;
+  }
+
+  .bar-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 0.4rem; }
+
+  .bar {
+    width: 100%;
+    border-radius: 4px 4px 0 0;
+    transition: height 0.5s ease;
+    min-height: 4px;
+  }
+
+  .bar-day { font-size: 0.7rem; color: var(--muted); }
+
+  /* LOG LIST */
+  .log-list {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  .log-header {
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .log-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+
+  .log-item:last-child { border-bottom: none; }
+  .log-item:hover { background: rgba(255,255,255,0.02); }
+
+  .log-info { display: flex; flex-direction: column; gap: 0.2rem; }
+  .log-type { font-size: 0.88rem; font-weight: 500; }
+  .log-meta { font-size: 0.75rem; color: var(--muted); }
+
+  .log-cal {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.1rem;
+    color: var(--orange);
+  }
+
+  .badge {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 50px;
+    font-weight: 500;
+  }
+
+  .badge-cardio { background: rgba(255,107,53,0.15); color: var(--orange); }
+  .badge-strength { background: rgba(59,158,255,0.15); color: var(--blue); }
+  .badge-yoga { background: rgba(167,139,250,0.15); color: var(--purple); }
+  .badge-run { background: rgba(57,217,122,0.15); color: var(--green); }
+  .badge-other { background: rgba(102,102,102,0.2); color: var(--muted); }
+
+  .delete-btn {
+    background: none;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.8rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    transition: color 0.15s;
+    margin-left: 1rem;
+  }
+
+  .delete-btn:hover { color: var(--red); }
+
+  .empty-log { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.88rem; }
+
+  @media (max-width: 480px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="app-header">
+    <div class="app-title">FitTrack</div>
+    <div class="date-label" id="dateLabel"></div>
+  </div>
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card stat-steps">
+      <div class="stat-icon">👟</div>
+      <div class="stat-value" id="totalSteps">0</div>
+      <div class="stat-label">Steps Today</div>
+    </div>
+    <div class="stat-card stat-cal">
+      <div class="stat-icon">🔥</div>
+      <div class="stat-value" id="totalCal">0</div>
+      <div class="stat-label">Calories Burned</div>
+    </div>
+    <div class="stat-card stat-workout">
+      <div class="stat-icon">⏱</div>
+      <div class="stat-value" id="totalMin">0</div>
+      <div class="stat-label">Active Minutes</div>
+    </div>
+    <div class="stat-card stat-water">
+      <div class="stat-icon">💧</div>
+      <div class="stat-value" id="totalWater">0</div>
+      <div class="stat-label">Water (glasses)</div>
+    </div>
+  </div>
+
+  <!-- PROGRESS RINGS -->
+  <div class="rings-row">
+    <div class="ring-card">
+      <svg viewBox="0 0 70 70">
+        <circle cx="35" cy="35" r="28" fill="none" stroke="#1c1c1c" stroke-width="7"/>
+        <circle id="ringSteps" cx="35" cy="35" r="28" fill="none" stroke="#3b9eff" stroke-width="7"
+          stroke-dasharray="175.9" stroke-dashoffset="175.9" stroke-linecap="round"
+          transform="rotate(-90 35 35)" style="transition:stroke-dashoffset 0.6s ease"/>
+        <text x="35" y="40" text-anchor="middle" fill="#f0f0f0" font-family="Bebas Neue" font-size="13" id="ringStepsPct">0%</text>
+      </svg>
+      <div class="ring-label">Steps Goal</div>
+      <div class="ring-pct" style="color:var(--blue)">8000 goal</div>
+    </div>
+    <div class="ring-card">
+      <svg viewBox="0 0 70 70">
+        <circle cx="35" cy="35" r="28" fill="none" stroke="#1c1c1c" stroke-width="7"/>
+        <circle id="ringCal" cx="35" cy="35" r="28" fill="none" stroke="#ff6b35" stroke-width="7"
+          stroke-dasharray="175.9" stroke-dashoffset="175.9" stroke-linecap="round"
+          transform="rotate(-90 35 35)" style="transition:stroke-dashoffset 0.6s ease"/>
+        <text x="35" y="40" text-anchor="middle" fill="#f0f0f0" font-family="Bebas Neue" font-size="13" id="ringCalPct">0%</text>
+      </svg>
+      <div class="ring-label">Calorie Goal</div>
+      <div class="ring-pct" style="color:var(--orange)">500 goal</div>
+    </div>
+    <div class="ring-card">
+      <svg viewBox="0 0 70 70">
+        <circle cx="35" cy="35" r="28" fill="none" stroke="#1c1c1c" stroke-width="7"/>
+        <circle id="ringMin" cx="35" cy="35" r="28" fill="none" stroke="#39d97a" stroke-width="7"
+          stroke-dasharray="175.9" stroke-dashoffset="175.9" stroke-linecap="round"
+          transform="rotate(-90 35 35)" style="transition:stroke-dashoffset 0.6s ease"/>
+        <text x="35" y="40" text-anchor="middle" fill="#f0f0f0" font-family="Bebas Neue" font-size="13" id="ringMinPct">0%</text>
+      </svg>
+      <div class="ring-label">Active Min Goal</div>
+      <div class="ring-pct" style="color:var(--green)">30 min goal</div>
+    </div>
+  </div>
+
+  <!-- LOG FORM -->
+  <div class="section-title">Log Activity</div>
+  <div class="log-form">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Exercise Type</label>
+        <select id="exType">
+          <option value="Run">Running</option>
+          <option value="Cardio">Cardio</option>
+          <option value="Strength">Strength Training</option>
+          <option value="Yoga">Yoga / Stretching</option>
+          <option value="Cycling">Cycling</option>
+          <option value="Swimming">Swimming</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Duration (minutes)</label>
+        <input type="number" id="exMin" placeholder="30" min="1" max="300">
+      </div>
+      <div class="form-group">
+        <label>Calories Burned</label>
+        <input type="number" id="exCal" placeholder="200" min="1">
+      </div>
+      <div class="form-group">
+        <label>Steps (optional)</label>
+        <input type="number" id="exSteps" placeholder="3000" min="0">
+      </div>
+      <div class="form-group">
+        <label>Water Glasses</label>
+        <input type="number" id="exWater" placeholder="2" min="0" max="20">
+      </div>
+    </div>
+    <button class="btn-log" onclick="logActivity()">+ Log Activity</button>
+  </div>
+
+  <!-- WEEKLY CHART -->
+  <div class="section-title">Weekly Calories</div>
+  <div class="weekly-chart">
+    <div class="bar-chart" id="barChart"></div>
+  </div>
+
+  <!-- LOG LIST -->
+  <div class="section-title">Today's Activity Log</div>
+  <div class="log-list">
+    <div class="log-header">Activity Log</div>
+    <div id="logItems"><div class="empty-log">No activities logged yet. Add one above!</div></div>
+  </div>
+
+</div>
+
+<script>
+  let activities = JSON.parse(localStorage.getItem('fitActivities') || '[]');
+  let weekly = JSON.parse(localStorage.getItem('fitWeekly') || JSON.stringify([0,0,0,0,0,0,0]));
+
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const today = new Date();
+
+  document.getElementById('dateLabel').textContent = today.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+
+  const badgeClass = { Run:'badge-run', Cardio:'badge-cardio', Strength:'badge-strength', Yoga:'badge-yoga' };
+
+  function logActivity() {
+    const type = document.getElementById('exType').value;
+    const min = parseInt(document.getElementById('exMin').value) || 0;
+    const cal = parseInt(document.getElementById('exCal').value) || 0;
+    const steps = parseInt(document.getElementById('exSteps').value) || 0;
+    const water = parseInt(document.getElementById('exWater').value) || 0;
+
+    if (!min && !cal) return alert('Please enter at least duration or calories.');
+
+    const entry = { type, min, cal, steps, water, time: new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) };
+    activities.unshift(entry);
+
+    const dayIdx = today.getDay();
+    weekly[dayIdx] = (weekly[dayIdx] || 0) + cal;
+
+    localStorage.setItem('fitActivities', JSON.stringify(activities));
+    localStorage.setItem('fitWeekly', JSON.stringify(weekly));
+
+    ['exMin','exCal','exSteps','exWater'].forEach(id => document.getElementById(id).value = '');
+    render();
+  }
+
+  function deleteActivity(i) {
+    const removed = activities[i];
+    const dayIdx = today.getDay();
+    weekly[dayIdx] = Math.max(0, (weekly[dayIdx] || 0) - removed.cal);
+    activities.splice(i, 1);
+    localStorage.setItem('fitActivities', JSON.stringify(activities));
+    localStorage.setItem('fitWeekly', JSON.stringify(weekly));
+    render();
+  }
+
+  function render() {
+    const totCal = activities.reduce((s,a) => s+a.cal, 0);
+    const totMin = activities.reduce((s,a) => s+a.min, 0);
+    const totSteps = activities.reduce((s,a) => s+a.steps, 0);
+    const totWater = activities.reduce((s,a) => s+a.water, 0);
+
+    document.getElementById('totalCal').textContent = totCal;
+    document.getElementById('totalMin').textContent = totMin;
+    document.getElementById('totalSteps').textContent = totSteps.toLocaleString();
+    document.getElementById('totalWater').textContent = totWater;
+
+    setRing('ringSteps', 'ringStepsPct', totSteps, 8000);
+    setRing('ringCal', 'ringCalPct', totCal, 500);
+    setRing('ringMin', 'ringMinPct', totMin, 30);
+
+    renderBars();
+    renderLog();
+  }
+
+  function setRing(ringId, pctId, val, goal) {
+    const pct = Math.min(1, val / goal);
+    const circ = 175.9;
+    document.getElementById(ringId).style.strokeDashoffset = circ * (1 - pct);
+    document.getElementById(pctId).textContent = Math.round(pct * 100) + '%';
+  }
+
+  function renderBars() {
+    const maxCal = Math.max(...weekly, 1);
+    const todayIdx = today.getDay();
+    document.getElementById('barChart').innerHTML = days.map((d, i) => {
+      const h = Math.round((weekly[i] / maxCal) * 90);
+      const isToday = i === todayIdx;
+      const color = isToday ? 'var(--orange)' : 'rgba(59,158,255,0.4)';
+      return `<div class="bar-col">
+        <div class="bar" style="height:${h}px;background:${color}"></div>
+        <div class="bar-day" style="color:${isToday ? 'var(--text)' : ''}">${d}</div>
+      </div>`;
+    }).join('');
+  }
+
+  function renderLog() {
+    const el = document.getElementById('logItems');
+    if (!activities.length) { el.innerHTML = '<div class="empty-log">No activities logged yet. Add one above!</div>'; return; }
+    el.innerHTML = activities.map((a, i) => {
+      const bc = badgeClass[a.type] || 'badge-other';
+      return `<div class="log-item">
+        <div class="log-info">
+          <div class="log-type"><span class="badge ${bc}">${a.type}</span></div>
+          <div class="log-meta">${a.min ? a.min + ' min' : ''}${a.min && a.steps ? ' · ' : ''}${a.steps ? a.steps.toLocaleString() + ' steps' : ''} · ${a.time}</div>
+        </div>
+        <div style="display:flex;align-items:center">
+          <div class="log-cal">${a.cal} kcal</div>
+          <button class="delete-btn" onclick="deleteActivity(${i})">✕</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  render();
+</script>
+</body>
+</html>
